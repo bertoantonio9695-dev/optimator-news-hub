@@ -1,0 +1,6 @@
+body { font-family: 'Inter', sans-serif; line-height: 1.6; max-width: 800px; margin: auto; padding: 20px; background: #f4f4f9; color: #333; }
+article { background: white; padding: 30px; border-radius: 15px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
+h1 { color: #2c3e50; }
+.cta-button { display: inline-block; background: #007bff; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; }
+li { margin-bottom: 10px; list-style: none; }
+a { color: #007bff; text-decoration: none; }
