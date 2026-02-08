@@ -12,7 +12,7 @@ ADSTERRA_DIRECT_LINK = "https://www.effectivegatecpm.com/scpufanss?key=91a5369ee
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 def get_trending_news():
-    print("1. Mengambil berita dari Google News RSS...")
+    print("1. Mengambil berita dari RSS...")
     try:
         rss_url = "https://news.google.com/rss/search?q=finance+technology+usa&hl=en-US&gl=US&ceid=US:en"
         response = requests.get(rss_url, timeout=15)
@@ -21,36 +21,26 @@ def get_trending_news():
         return item.find('title').text
     except Exception as e:
         print(f"Gagal ambil RSS: {e}")
-        return "New Financial Technology Trends in USA 2026"
+        return "Financial Technology Innovation 2026"
 
 def generate_article_groq(news_title):
     print(f"2. Menyusun artikel via Groq Cloud: {news_title}")
-    
     url = "https://api.groq.com/openai/v1/chat/completions"
-    
     prompt = f"Write a 500-word professional blog post in English about: '{news_title}'. Format output strictly as: [TITLE] title [DESC] short description [CONTENT] html content [IMG] short image prompt"
-    
     payload = {
         "model": "llama-3.3-70b-versatile",
         "messages": [{"role": "user", "content": prompt}]
     }
-    
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    
+    headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
     response = requests.post(url, headers=headers, json=payload, timeout=30)
-    
     if response.status_code != 200:
         print(f"Groq API Error: {response.text}")
         sys.exit(1)
-        
     return response.json()['choices'][0]['message']['content']
 
 def main():
     if not GROQ_API_KEY:
-        print("ERROR: GROQ_API_KEY tidak ditemukan di Secrets!")
+        print("ERROR: GROQ_API_KEY tidak ditemukan!")
         sys.exit(1)
 
     try:
@@ -63,13 +53,16 @@ def main():
         content = re.search(r"\[CONTENT\](.*)\[IMG\]", raw_text, re.I|re.S).group(1).strip()
         img_p = re.search(r"\[IMG\](.*)", raw_text, re.I).group(1).strip()
 
-        img_url = f"https://pollinations.ai/p/{img_p.replace(' ', '%20')}?width=800&height=600&seed={datetime.now().second}"
+        # --- PERBAIKAN URL GAMBAR ---
+        clean_img_p = re.sub(r'[^a-zA-Z0-9\s]', '', img_p)
+        encoded_img_p = clean_img_p.replace(' ', '%20')
+        img_url = f"https://image.pollinations.ai/prompt/{encoded_img_p}?width=800&height=600&nologo=true&seed={datetime.now().second}"
 
         if not os.path.exists("posts"): os.makedirs("posts")
         filename = re.sub(r'[^a-zA-Z0-9]', '-', title.lower()).strip('-') + ".html"
         filepath = f"posts/{filename}"
         
-        html_post = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>{title}</title><link rel="stylesheet" href="../style.css">{ADSTERRA_SOCIAL_BAR}</head><body><nav><a href="../index.html">← Home</a></nav><article><h1>{title}</h1><img src="{img_url}" style="width:100%;border-radius:10px;"><div class='article-content'>{content}</div><br><center><a href='{ADSTERRA_DIRECT_LINK}' class='cta-button'>Read More</a></center></article></body></html>"""
+        html_post = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>{title}</title><link rel="stylesheet" href="../style.css">{ADSTERRA_SOCIAL_BAR}</head><body><nav><a href="../index.html">← Home</a></nav><article><h1>{title}</h1><img src="{img_url}" alt="{title}" style="width:100%;max-height:500px;object-fit:cover;border-radius:12px;margin-bottom:20px;"><div class='article-content'>{content}</div><br><center><a href='{ADSTERRA_DIRECT_LINK}' class='cta-button' style='background-color:#007bff;color:white;padding:15px 30px;text-decoration:none;border-radius:8px;font-weight:bold;'>Read More</a></center></article></body></html>"""
         
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(html_post)
@@ -83,7 +76,7 @@ def main():
             with open("index.html", "w", encoding="utf-8") as f:
                 f.write(new_index)
 
-        print(f"BERHASIL: {title} terbit via Groq!")
+        print(f"BERHASIL: {title} terbit dengan gambar!")
 
     except Exception as e:
         print(f"FAILED: {str(e)}")
