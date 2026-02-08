@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install google-generativeai requests
+          pip install google-genai requests # PAKAI LIBRARY TERBARU
 
       - name: Run bot
         env:
