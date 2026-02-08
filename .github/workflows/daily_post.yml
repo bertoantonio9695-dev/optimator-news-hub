@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -U google-genai requests
+          pip install google-generativeai requests
 
       - name: Run bot
         env:
