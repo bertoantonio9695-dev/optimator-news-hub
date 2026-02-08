@@ -5,6 +5,10 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch: 
 
+# TAMBAHKAN IZIN INI
+permissions:
+  contents: write
+
 jobs:
   run-bot:
     runs-on: ubuntu-latest
@@ -14,12 +18,14 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install requests
-      - run: python bot_engine.py
+      - name: Run Python Script
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-      - name: Commit changes
+        run: python bot_engine.py
+      - name: Commit and Push
         run: |
           git config --local user.email "bot@github.com"
           git config --local user.name "AutoBot"
           git add .
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto Post via Groq" && git push)
+          # Hanya push jika ada perubahan
+          git diff --quiet && git diff --staged --quiet || (git commit -m "New Post: $(date)" && git push origin main)
