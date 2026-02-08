@@ -1,0 +1,23 @@
+name: AutoPost
+on:
+  schedule:
+    - cron: '0 0 * * *' # Jalan setiap jam 12 malam
+  workflow_dispatch: 
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - install python: uses: actions/setup-python@v2
+        with: {python-version: '3.9'}
+      - run: pip install google-generativeai requests
+      - run: python bot_engine.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Commit changes
+        run: |
+          git config --local user.email "bot@github.com"
+          git config --local user.name "AutoBot"
+          git add .
+          git commit -m "Update New Post"
+          git push
