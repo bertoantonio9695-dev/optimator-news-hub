@@ -1,6 +1,13 @@
-body { font-family: 'Inter', sans-serif; line-height: 1.6; max-width: 800px; margin: auto; padding: 20px; background: #f4f4f9; color: #333; }
-article { background: white; padding: 30px; border-radius: 15px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
-h1 { color: #2c3e50; }
-.cta-button { display: inline-block; background: #007bff; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; }
-li { margin-bottom: 10px; list-style: none; }
-a { color: #007bff; text-decoration: none; }
+/* style.css */
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; }
+.container { width: 80%; margin: auto; overflow: hidden; padding: 20px; }
+header { background: #2c3e50; color: #fff; padding-top: 30px; min-height: 70px; border-bottom: #3498db 3px solid; text-align: center; }
+nav { background: #34495e; color: #fff; padding: 10px 0; text-align: center; }
+nav a { color: #fff; text-decoration: none; margin: 0 15px; font-weight: bold; }
+h1 { margin: 0; }
+main { padding: 20px 0; }
+article { background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+ul { list-style: none; padding: 0; }
+li { background: #fff; margin-bottom: 10px; padding: 15px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+li a { text-decoration: none; color: #3498db; font-size: 1.2rem; font-weight: bold; }
+footer { background: #2c3e50; color: #fff; text-align: center; padding: 20px 0; margin-top: 20px; }
