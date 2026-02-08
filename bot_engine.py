@@ -1,6 +1,6 @@
 import os
 import requests
-from google import genai # Library terbaru
+import json
 from datetime import datetime
 import re
 import sys
@@ -15,50 +15,50 @@ if not GEMINI_API_KEY:
     print("ERROR: API Key tidak ditemukan!")
     sys.exit(1)
 
-# Inisialisasi Client Baru sesuai saran Google
-client = genai.Client(api_key=GEMINI_API_KEY)
-
 def get_trending_news():
-    print("Mengambil berita terbaru dari Google News USA RSS...")
+    print("1. Mengambil berita terbaru dari RSS...")
     rss_url = "https://news.google.com/rss/search?q=finance+technology+usa&hl=en-US&gl=US&ceid=US:en"
     response = requests.get(rss_url)
     root = ET.fromstring(response.content)
-    
     item = root.find('.//item')
-    title = item.find('title').text
-    return title
+    return item.find('title').text
 
-def generate_article(news_title):
-    print(f"Menyusun artikel berdasarkan berita: {news_title}")
-    prompt = f"""
-    Write a 500-word professional blog post in English based on this news: '{news_title}'.
-    Target audience: USA. 
-    Format your response EXACTLY like this:
-    [TITLE] Judul Disini
-    [DESC] Deskripsi Singkat
-    [CONTENT] Isi Artikel HTML (h2 dan p)
-    [IMG] Deskripsi Gambar Pendek (max 5 kata)
-    """
-    # Cara panggil baru untuk library google-genai
-    response = client.models.generate_content(
-        model='gemini-1.5-flash',
-        contents=prompt
-    )
-    return response.text
+def generate_article_manual(news_title):
+    print(f"2. Menyusun artikel via API HTTP Manual: {news_title}")
+    
+    # URL API Resmi Google (Gunakan v1 agar lebih stabil, bukan v1beta)
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    
+    prompt = f"Write a 500-word blog post in English about: '{news_title}'. Format: [TITLE] title [DESC] desc [CONTENT] html content [IMG] image prompt"
+    
+    payload = {
+        "contents": [{
+            "parts": [{"text": prompt}]
+        }]
+    }
+    
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    
+    if response.status_code != 200:
+        print(f"API Error: {response.text}")
+        sys.exit(1)
+        
+    res_json = response.json()
+    return res_json['candidates'][0]['content']['parts'][0]['text']
 
 def main():
     try:
         news_title = get_trending_news()
-        raw_text = generate_article(news_title)
+        raw_text = generate_article_manual(news_title)
         
         # Ekstraksi Data
-        title = re.search(r"\[TITLE\](.*)", raw_text).group(1).strip()
-        desc = re.search(r"\[DESC\](.*)", raw_text).group(1).strip()
-        content_match = re.search(r"\[CONTENT\](.*)\[IMG\]", raw_text, re.DOTALL)
-        content = content_match.group(1).strip() if content_match else raw_text
-        img_prompt = re.search(r"\[IMG\](.*)", raw_text).group(1).strip()
+        title = re.search(r"\[TITLE\](.*)", raw_text, re.IGNORECASE).group(1).strip()
+        desc = re.search(r"\[DESC\](.*)", raw_text, re.IGNORECASE).group(1).strip()
+        content = re.search(r"\[CONTENT\](.*)\[IMG\]", raw_text, re.IGNORECASE | re.DOTALL).group(1).strip()
+        img_p = re.search(r"\[IMG\](.*)", raw_text, re.IGNORECASE).group(1).strip()
 
-        img_url = f"https://pollinations.ai/p/{img_prompt.replace(' ', '%20')}?width=800&height=600&seed={datetime.now().second}"
+        img_url = f"https://pollinations.ai/p/{img_p.replace(' ', '%20')}?width=800&height=600&seed={datetime.now().second}"
 
         if not os.path.exists("posts"): os.makedirs("posts")
         filename = re.sub(r'[^a-zA-Z0-9]', '-', title.lower()).strip('-') + ".html"
@@ -80,10 +80,10 @@ def main():
             with open("index.html", "w", encoding="utf-8") as f:
                 f.write(new_index)
 
-        print(f"BERHASIL: Artikel '{title}' terbit melalui library terbaru!")
+        print(f"BERHASIL TOTAL: Artikel '{title}' terbit!")
 
     except Exception as e:
-        print(f"FAILED PROCESS: {str(e)}")
+        print(f"FAILED: {str(e)}")
         sys.exit(1)
 
 if __name__ == "__main__":
