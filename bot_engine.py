@@ -1,6 +1,6 @@
 import os
 import requests
-import google.generativeai as genai
+from google import genai # Library terbaru
 from datetime import datetime
 import re
 import sys
@@ -15,27 +15,23 @@ if not GEMINI_API_KEY:
     print("ERROR: API Key tidak ditemukan!")
     sys.exit(1)
 
-# Gunakan library stabil lama agar tidak ada masalah SDK
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Inisialisasi Client Baru sesuai saran Google
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 def get_trending_news():
     print("Mengambil berita terbaru dari Google News USA RSS...")
-    # RSS Feed untuk Berita Bisnis/Teknologi di USA
     rss_url = "https://news.google.com/rss/search?q=finance+technology+usa&hl=en-US&gl=US&ceid=US:en"
     response = requests.get(rss_url)
     root = ET.fromstring(response.content)
     
-    # Ambil berita pertama
     item = root.find('.//item')
     title = item.find('title').text
-    link = item.find('link').text
-    return title, link
+    return title
 
 def generate_article(news_title):
     print(f"Menyusun artikel berdasarkan berita: {news_title}")
     prompt = f"""
-    Write a 500-word professional blog post in English based on this news title: '{news_title}'.
+    Write a 500-word professional blog post in English based on this news: '{news_title}'.
     Target audience: USA. 
     Format your response EXACTLY like this:
     [TITLE] Judul Disini
@@ -43,12 +39,16 @@ def generate_article(news_title):
     [CONTENT] Isi Artikel HTML (h2 dan p)
     [IMG] Deskripsi Gambar Pendek (max 5 kata)
     """
-    response = model.generate_content(prompt)
+    # Cara panggil baru untuk library google-genai
+    response = client.models.generate_content(
+        model='gemini-1.5-flash',
+        contents=prompt
+    )
     return response.text
 
 def main():
     try:
-        news_title, news_link = get_trending_news()
+        news_title = get_trending_news()
         raw_text = generate_article(news_title)
         
         # Ekstraksi Data
@@ -80,7 +80,7 @@ def main():
             with open("index.html", "w", encoding="utf-8") as f:
                 f.write(new_index)
 
-        print(f"BERHASIL: Artikel '{title}' terbit melalui jalur RSS.")
+        print(f"BERHASIL: Artikel '{title}' terbit melalui library terbaru!")
 
     except Exception as e:
         print(f"FAILED PROCESS: {str(e)}")
