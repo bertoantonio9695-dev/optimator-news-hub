@@ -11,52 +11,69 @@ ADSTERRA_SOCIAL_BAR = """<script src="https://pl28671543.effectivegatecpm.com/b4
 ADSTERRA_DIRECT_LINK = "https://www.effectivegatecpm.com/scpufanss?key=91a5369ee9e711e8e1f77e2491d62f65"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-if not GEMINI_API_KEY:
-    print("ERROR: API Key tidak ditemukan!")
+def get_trending_news():
+    print("1. Mengambil berita dari RSS...")
+    try:
+        rss_url = "https://news.google.com/rss/search?q=finance+technology+usa&hl=en-US&gl=US&ceid=US:en"
+        response = requests.get(rss_url, timeout=10)
+        root = ET.fromstring(response.content)
+        item = root.find('.//item')
+        return item.find('title').text
+    except:
+        return "Latest Technology and Finance Trends 2026"
+
+def generate_article_fail_safe(news_title):
+    print(f"2. Menyusun artikel untuk: {news_title}")
+    
+    # DAFTAR MODEL YANG AKAN DICOBA SATU PER SATU
+    model_candidates = [
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-pro"
+    ]
+    
+    prompt = f"Write a 500-word professional blog post in English about: '{news_title}'. Format: [TITLE] title [DESC] desc [CONTENT] html content [IMG] short image prompt"
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+    headers = {'Content-Type': 'application/json'}
+
+    for model_name in model_candidates:
+        print(f"   Mencoba model: {model_name}...")
+        # Gunakan v1beta karena lebih mendukung model gratis
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+        
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(payload), timeout=30)
+            if response.status_code == 200:
+                print(f"   BERHASIL menggunakan {model_name}!")
+                res_json = response.json()
+                return res_json['candidates'][0]['content']['parts'][0]['text']
+            else:
+                print(f"   Gagal dengan {model_name}: {response.status_code}")
+        except Exception as e:
+            print(f"   Error pada {model_name}: {str(e)}")
+            
+    print("FATAL: Semua model gagal merespons.")
     sys.exit(1)
 
-def get_trending_news():
-    print("1. Mengambil berita terbaru dari RSS...")
-    rss_url = "https://news.google.com/rss/search?q=finance+technology+usa&hl=en-US&gl=US&ceid=US:en"
-    response = requests.get(rss_url)
-    root = ET.fromstring(response.content)
-    item = root.find('.//item')
-    return item.find('title').text
-
-def generate_article_manual(news_title):
-    print(f"2. Menyusun artikel via API HTTP Manual: {news_title}")
-    
-    # URL API Resmi Google (Gunakan v1 agar lebih stabil, bukan v1beta)
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-    
-    prompt = f"Write a 500-word blog post in English about: '{news_title}'. Format: [TITLE] title [DESC] desc [CONTENT] html content [IMG] image prompt"
-    
-    payload = {
-        "contents": [{
-            "parts": [{"text": prompt}]
-        }]
-    }
-    
-    headers = {'Content-Type': 'application/json'}
-    response = requests.post(url, headers=headers, data=json.dumps(payload))
-    
-    if response.status_code != 200:
-        print(f"API Error: {response.text}")
-        sys.exit(1)
-        
-    res_json = response.json()
-    return res_json['candidates'][0]['content']['parts'][0]['text']
-
 def main():
+    if not GEMINI_API_KEY:
+        print("ERROR: GEMINI_API_KEY tidak ditemukan!")
+        sys.exit(1)
+
     try:
         news_title = get_trending_news()
-        raw_text = generate_article_manual(news_title)
+        raw_text = generate_article_fail_safe(news_title)
         
-        # Ekstraksi Data
-        title = re.search(r"\[TITLE\](.*)", raw_text, re.IGNORECASE).group(1).strip()
-        desc = re.search(r"\[DESC\](.*)", raw_text, re.IGNORECASE).group(1).strip()
-        content = re.search(r"\[CONTENT\](.*)\[IMG\]", raw_text, re.IGNORECASE | re.DOTALL).group(1).strip()
-        img_p = re.search(r"\[IMG\](.*)", raw_text, re.IGNORECASE).group(1).strip()
+        # Ekstraksi Data (Regex lebih fleksibel)
+        title_match = re.search(r"\[TITLE\](.*)", raw_text, re.IGNORECASE)
+        desc_match = re.search(r"\[DESC\](.*)", raw_text, re.IGNORECASE)
+        content_match = re.search(r"\[CONTENT\](.*)\[IMG\]", raw_text, re.IGNORECASE | re.DOTALL)
+        img_match = re.search(r"\[IMG\](.*)", raw_text, re.IGNORECASE)
+
+        title = title_match.group(1).strip() if title_match else "Trending Update"
+        desc = desc_match.group(1).strip() if desc_match else "Insights for today."
+        content = content_match.group(1).strip() if content_match else raw_text
+        img_p = img_match.group(1).strip() if img_match else "business finance"
 
         img_url = f"https://pollinations.ai/p/{img_p.replace(' ', '%20')}?width=800&height=600&seed={datetime.now().second}"
 
@@ -69,18 +86,23 @@ def main():
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(html_post)
 
-        with open("index.html", "r", encoding="utf-8") as f:
-            index_content = f.read()
-        
-        new_link = f'<li><a href="{filepath}">{title}</a> - <small>{datetime.now().strftime("%Y-%m-%d")}</small></li>\n'
-        marker = '<!-- Script Bot akan otomatis menambah daftar artikel di sini -->'
-        
-        if marker in index_content:
-            new_index = index_content.replace(marker, marker + "\n" + new_link)
+        # Update index.html
+        if os.path.exists("index.html"):
+            with open("index.html", "r", encoding="utf-8") as f:
+                index_content = f.read()
+            
+            new_link = f'<li><a href="{filepath}">{title}</a> - <small>{datetime.now().strftime("%Y-%m-%d")}</small></li>\n'
+            # Coba cari penanda, jika tidak ada, tambahkan di akhir main
+            marker = '<!-- Script Bot akan otomatis menambah daftar artikel di sini -->'
+            if marker in index_content:
+                new_index = index_content.replace(marker, marker + "\n" + new_link)
+            else:
+                new_index = index_content.replace("</ul>", new_link + "</ul>")
+            
             with open("index.html", "w", encoding="utf-8") as f:
                 f.write(new_index)
 
-        print(f"BERHASIL TOTAL: Artikel '{title}' terbit!")
+        print(f"SELESAI: {title} terbit.")
 
     except Exception as e:
         print(f"FAILED: {str(e)}")
