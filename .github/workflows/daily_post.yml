@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install google-genai requests # MENGGUNAKAN LIBRARY BARU
+          pip install -U google-genai requests
 
       - name: Run bot
         env:
