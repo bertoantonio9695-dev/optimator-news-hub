@@ -6,8 +6,8 @@ import re
 
 # --- 1. KONFIGURASI (Ganti bagian ini) ---
 # Masukkan kode iklan Adsterra Anda di bawah ini
-ADSTERRA_SOCIAL_BAR = """<!-- Masukkan Kode Social Bar Adsterra Anda di Sini -->"""
-ADSTERRA_DIRECT_LINK = "https://www.yourdirectlink.com" # Ganti dengan Direct Link Anda
+ADSTERRA_SOCIAL_BAR = """https://pl28671543.effectivegatecpm.com/b4/04/60/b40460008fe491a20d7ed511234ef60c.js"""
+ADSTERRA_DIRECT_LINK = "https://www.effectivegatecpm.com/scpufanss?key=91a5369ee9e711e8e1f77e2491d62f65" # Ganti dengan Direct Link Anda
 
 # --- 2. SETTING GEMINI DENGAN SEARCH REAL-TIME ---
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
