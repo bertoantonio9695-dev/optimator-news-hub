@@ -140,5 +140,14 @@
         <guid>https://bertoantonio9695-dev.github.io/optimator-news-hub/posts/the-us-open-banking-journey--navigating--account-access--fees.html</guid>
         <enclosure url="https://image.pollinations.ai/prompt/A%20graph%20showing%20the%20growth%20of%20open%20banking%20in%20the%20US%20with%20a%20red%20arrow%20pointing%20to%20the%20introduction%20of%20account%20access%20fees?width=800&height=600&nologo=true&seed=614&ext=.jpg" length="0" type="image/jpeg" />
     </item>
+
+    <item>
+        <title>Artificial Intelligence in Financial Services: Balancing Innovation and Oversight</title>
+        <link>https://optimator-news-hub.vercel.app/posts/artificial-intelligence-in-financial-services--balancing-innovation-and-oversight.html</link>
+        <description><![CDATA[<img src="https://image.pollinations.ai/prompt/A%20robotic%20hand%20holding%20a%20tablet%20with%20a%20stock%20market%20graph%20on%20the%20screen%20symbolizing%20the%20intersection%20of%20artificial%20intelligence%20and%20finance?width=800&height=600&nologo=true&seed=587&ext=.jpg" width="800" /><br/>The Government Accountability Office (GAO) examines the use of artificial intelligence in financial services and highlights the need for effective oversight to mitigate risks.]]></description>
+        <pubDate>Wed, 25 Feb 2026 05:16:37 +0000</pubDate>
+        <guid>https://optimator-news-hub.vercel.app/posts/artificial-intelligence-in-financial-services--balancing-innovation-and-oversight.html</guid>
+        <enclosure url="https://image.pollinations.ai/prompt/A%20robotic%20hand%20holding%20a%20tablet%20with%20a%20stock%20market%20graph%20on%20the%20screen%20symbolizing%20the%20intersection%20of%20artificial%20intelligence%20and%20finance?width=800&height=600&nologo=true&seed=587&ext=.jpg" length="0" type="image/jpeg" />
+    </item>
 </channel>
 </rss>
